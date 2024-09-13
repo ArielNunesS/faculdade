@@ -1,0 +1,17 @@
+# depslib dependency file v1.0
+1726147997 source:c:\users\user\downloads\mercado\main.cpp
+	<iostream>
+	<fstream>
+	<vector>
+	<iomanip>
+	<ctime>
+
+1726148564 source:c:\users\user\downloads\mercado\main2.cpp
+	<iostream>
+	<string>
+	<vector>
+	<limits>
+	<algorithm>
+	<fstream>
+	<iomanip>
+
