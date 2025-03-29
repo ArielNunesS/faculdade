@@ -1,0 +1,34 @@
+<diagram program="umletino" version="15.1"><zoom_level>7</zoom_level><help_text>Space for diagram notes</help_text><element><id>UMLClass</id><coordinates><x>28</x><y>56</y><w>182</w><h>133</h></coordinates><panel_attributes>Produto
+--
+- nome: string
+- descrição: string
+- preço: number
+- quantidade: number
+--
++ atualizarPreço(preço: number)
++ atualizarQuantidade(quantidade: number)
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>308</x><y>70</y><w>189</w><h>133</h></coordinates><panel_attributes>Compra
+--
+- itens itemCompra[ ]
+- comprador: string
+- estado: estadoCompra
+- pagamentos: Pagamento[ ]
+--
++ adiciontarItem(item: itemCompra)
++ finalizarCompra( )
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>112</x><y>273</y><w>147</w><h>98</h></coordinates><panel_attributes>ItemCompra
+--
+- produto: Produto
+- quantidade
+- preço: number</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>378</x><y>266</y><w>147</w><h>56</h></coordinates><panel_attributes>Pagamento
+--
+valor: number
+meio: MeioPagamento</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>385</x><y>385</y><w>133</w><h>70</h></coordinates><panel_attributes>Enum: MeioPagamento
+--
+- DINHEIRO
+- DEBITO
+- CREDITO</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>602</x><y>77</y><w>147</w><h>56</h></coordinates><panel_attributes>Enum: EstadoCompra
+--
+- PENDENTE
+- CANCELADA
+- CONFIRMADA</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>182</x><y>196</y><w>147</w><h>91</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes><additional_attributes>190;10;10;110</additional_attributes></element><element><id>Relation</id><coordinates><x>490</x><y>105</y><w>126</w><h>21</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;10;160;10</additional_attributes></element><element><id>Text</id><coordinates><x>210</x><y>84</y><w>70</w><h>49</h></coordinates><panel_attributes></panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>287</x><y>91</y><w>70</w><h>49</h></coordinates><panel_attributes>1</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>210</x><y>91</y><w>70</w><h>49</h></coordinates><panel_attributes>0...*</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>119</x><y>259</y><w>70</w><h>49</h></coordinates><panel_attributes>1*...</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>406</x><y>252</y><w>70</w><h>49</h></coordinates><panel_attributes>0*...</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>294</x><y>182</y><w>70</w><h>49</h></coordinates><panel_attributes>1</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>112</x><y>189</y><w>70</w><h>49</h></coordinates><panel_attributes>1</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>588</x><y>77</y><w>70</w><h>49</h></coordinates><panel_attributes>1</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>497</x><y>70</y><w>70</w><h>49</h></coordinates><panel_attributes>1</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>406</x><y>203</y><w>70</w><h>49</h></coordinates><panel_attributes>1</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>399</x><y>371</y><w>70</w><h>49</h></coordinates><panel_attributes>1*...</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>231</x><y>259</y><w>70</w><h>49</h></coordinates><panel_attributes>1*...</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>399</x><y>322</y><w>70</w><h>49</h></coordinates><panel_attributes>1</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>427</x><y>196</y><w>21</w><h>84</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;100</additional_attributes></element><element><id>Relation</id><coordinates><x>427</x><y>315</y><w>21</w><h>84</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;100</additional_attributes></element><element><id>Relation</id><coordinates><x>154</x><y>189</y><w>21</w><h>98</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;-</panel_attributes><additional_attributes>10;10;10;120</additional_attributes></element><element><id>Relation</id><coordinates><x>203</x><y>105</y><w>119</w><h>21</h></coordinates><panel_attributes>lt=-</panel_attributes><additional_attributes>150;10;10;10;150;10</additional_attributes></element></diagram>
