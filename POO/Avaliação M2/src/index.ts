@@ -65,6 +65,14 @@ class Hotel extends Entidade implements IReservavel {
   static async cadastrar(hoteis: Hotel[]): Promise<void> {
     const nome = await perguntar('Digite o nome do hotel: ');
 
+    
+    const hotelExistente = hoteis.find(hotel => hotel.getNome() == nome);
+      if(hotelExistente){
+        console.log('Já existe um hotel com esse nome, por favor insira um nome difserente.');
+        return;
+      }
+    
+
     let id: number;
     do {
       const idStr = await perguntar('Crie uma ID de 5 dígitos para seu hotel: ');
@@ -93,7 +101,7 @@ class Hotel extends Entidade implements IReservavel {
     this.listarReservas().forEach(r => console.log(r.getResumo()));
   }
 
-  // Para serialização
+// transformar em string para salvar posteriormente
   toString(): string {
     return `HOTEL|${this.id}|${this.nome}|${this.telefone}`;
   }
@@ -156,10 +164,8 @@ class Reserva extends Entidade {
     const [dia1, mes1] = data1.split('/').map(Number);
     const [dia2, mes2] = data2.split('/').map(Number);
     
-    // Comparar primeiro por mês, depois por dia
     if (mes1 < mes2) return true;
     if (mes1 > mes2) return false;
-    // Mesmo mês, comparar dias
     return dia1 < dia2;
   }
   
@@ -222,7 +228,7 @@ class Reserva extends Entidade {
     console.log(`Reserva ID ${this.getIdReserva()}: ${this.getResumo()}`);
   }
 
-  // Para serialização
+  // transformar em string para salvar posteriormente
   toString(): string {
     return `RESERVA|${this.id}|${this.idHotel}|${this.nomeResponsavel}|${this.diaEntrada}|${this.diaSaida}`;
   }
@@ -263,7 +269,7 @@ class Pessoa {
     this.getReservas().forEach(r => console.log(r.getResumo()));
   }
 
-  // Para serialização
+  // transformar em string para salvar posteriormente
   toString(): string {
     return `PESSOA|${this.nomeResponsavel}`;
   }
