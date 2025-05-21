@@ -2,7 +2,7 @@
   "name": "hotel-reservas",
   "version": "1.0.0",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "dev": "ts-node src/index.ts"
   },
   "dependencies": {
     "readline-sync": "^1.4.10"

@@ -1,5 +1,7 @@
 // hotel-sistema.ts
 import readline from 'readline';
+import fs from 'fs';
+import path from 'path';
 
 // Utilitário para entrada via terminal
 const rl = readline.createInterface({
@@ -56,6 +58,10 @@ class Hotel extends Entidade implements IReservavel {
     return this.nome;
   }
 
+  getTelefone(): string {
+    return this.telefone;
+  }
+
   static async cadastrar(hoteis: Hotel[]): Promise<void> {
     const nome = await perguntar('Digite o nome do hotel: ');
 
@@ -86,6 +92,18 @@ class Hotel extends Entidade implements IReservavel {
     console.log(`Reservas do hotel ${this.getNome()}:`);
     this.listarReservas().forEach(r => console.log(r.getResumo()));
   }
+
+  // Para serialização
+  toString(): string {
+    return `HOTEL|${this.id}|${this.nome}|${this.telefone}`;
+  }
+
+  // Para desserialização
+  static fromString(linha: string): Hotel | null {
+    const partes = linha.split('|');
+    if (partes[0] !== 'HOTEL' || partes.length !== 4) return null;
+    return new Hotel(parseInt(partes[1]), partes[2], partes[3]);
+  }
 }
 
 class Reserva extends Entidade {
@@ -115,6 +133,36 @@ class Reserva extends Entidade {
     return this.nomeResponsavel;
   }
 
+  // Função auxiliar para validar data (dia entre 1-30, mês entre 1-12)
+  static validarData(data: string): boolean {
+    // Verificar formato dd/mm
+    if (!/^\d{2}\/\d{2}$/.test(data)) return false;
+    
+    const [diaStr, mesStr] = data.split('/');
+    const dia = parseInt(diaStr);
+    const mes = parseInt(mesStr);
+    
+    // Verificar se dia está entre 1 e 30
+    if (dia < 1 || dia > 30) return false;
+    
+    // Verificar se mês está entre 1 e 12
+    if (mes < 1 || mes > 12) return false;
+    
+    return true;
+  }
+  
+  // Função auxiliar para comparar datas (retorna true se data1 é anterior a data2)
+  static dataEhAnterior(data1: string, data2: string): boolean {
+    const [dia1, mes1] = data1.split('/').map(Number);
+    const [dia2, mes2] = data2.split('/').map(Number);
+    
+    // Comparar primeiro por mês, depois por dia
+    if (mes1 < mes2) return true;
+    if (mes1 > mes2) return false;
+    // Mesmo mês, comparar dias
+    return dia1 < dia2;
+  }
+  
   static async cadastrar(hoteis: Hotel[], reservas: Reserva[], pessoas: Pessoa[]): Promise<void> {
     const nomeHotel = await perguntar('Digite o nome do hotel para reserva: ');
     const hotel = hoteis.find(h => h.getNome() === nomeHotel);
@@ -126,11 +174,31 @@ class Reserva extends Entidade {
     const nomeResponsavel = await perguntar('Nome do responsável: ');
 
     let diaEntrada: string, diaSaida: string;
+    
+    // Validar data de entrada
     do {
-      diaEntrada = await perguntar('Data de entrada (dd/mm): ');
-      if (!/^\d{2}\/\d{2}$/.test(diaEntrada)) continue;
-      diaSaida = await perguntar('Data de saída (dd/mm): ');
-      if (!/^\d{2}\/\d{2}$/.test(diaSaida)) continue;
+      diaEntrada = await perguntar('Data de entrada (dd/mm) [dia: 1-30, mês: 1-12]: ');
+      if (!this.validarData(diaEntrada)) {
+        console.log('Data inválida. O dia deve estar entre 1-30 e o mês entre 1-12.');
+        continue;
+      }
+      break;
+    } while (true);
+    
+    // Validar data de saída (deve ser posterior à data de entrada)
+    do {
+      diaSaida = await perguntar('Data de saída (dd/mm) [dia: 1-30, mês: 1-12]: ');
+      if (!this.validarData(diaSaida)) {
+        console.log('Data inválida. O dia deve estar entre 1-30 e o mês entre 1-12.');
+        continue;
+      }
+      
+      // Verificar se a data de saída é posterior à data de entrada
+      if (!this.dataEhAnterior(diaEntrada, diaSaida)) {
+        console.log('A data de saída deve ser posterior à data de entrada.');
+        continue;
+      }
+      
       break;
     } while (true);
 
@@ -152,6 +220,24 @@ class Reserva extends Entidade {
 
   exibirInfo(): void {
     console.log(`Reserva ID ${this.getIdReserva()}: ${this.getResumo()}`);
+  }
+
+  // Para serialização
+  toString(): string {
+    return `RESERVA|${this.id}|${this.idHotel}|${this.nomeResponsavel}|${this.diaEntrada}|${this.diaSaida}`;
+  }
+
+  // Para desserialização
+  static fromString(linha: string): Reserva | null {
+    const partes = linha.split('|');
+    if (partes[0] !== 'RESERVA' || partes.length !== 6) return null;
+    return new Reserva(
+      parseInt(partes[1]), 
+      parseInt(partes[2]), 
+      partes[3], 
+      partes[4], 
+      partes[5]
+    );
   }
 }
 
@@ -176,6 +262,150 @@ class Pessoa {
     console.log(`Reservas de ${this.getNome()}:`);
     this.getReservas().forEach(r => console.log(r.getResumo()));
   }
+
+  // Para serialização
+  toString(): string {
+    return `PESSOA|${this.nomeResponsavel}`;
+  }
+
+  // Para desserialização
+  static fromString(linha: string): Pessoa | null {
+    const partes = linha.split('|');
+    if (partes[0] !== 'PESSOA' || partes.length !== 2) return null;
+    return new Pessoa(partes[1]);
+  }
+}
+
+// Funções para persistência de dados
+const DIRETORIO_DADOS = './dados';
+
+// Função para criar diretório de dados se não existir
+function inicializarDiretorio(): void {
+  if (!fs.existsSync(DIRETORIO_DADOS)) {
+    fs.mkdirSync(DIRETORIO_DADOS, { recursive: true });
+    console.log('Diretório de dados criado.');
+  }
+}
+
+// Função para obter o próximo número de arquivo
+function obterProximoNumeroArquivo(): number {
+  inicializarDiretorio();
+  
+  // Ler arquivos existentes no diretório
+  const arquivos = fs.readdirSync(DIRETORIO_DADOS)
+    .filter(arquivo => arquivo.startsWith('dados_') && arquivo.endsWith('.txt'))
+    .map(arquivo => {
+      const match = arquivo.match(/dados_(\d+)\.txt/);
+      return match ? parseInt(match[1]) : 0;
+    })
+    .filter(num => !isNaN(num));
+  
+  if (arquivos.length === 0) return 1;
+  return Math.max(...arquivos) + 1;
+}
+
+// Função para obter o nome do último arquivo de dados
+function obterUltimoArquivo(): string | null {
+  inicializarDiretorio();
+  
+  const arquivos = fs.readdirSync(DIRETORIO_DADOS)
+    .filter(arquivo => arquivo.startsWith('dados_') && arquivo.endsWith('.txt'))
+    .sort((a, b) => {
+      const numA = parseInt(a.match(/dados_(\d+)\.txt/)?.[1] || '0');
+      const numB = parseInt(b.match(/dados_(\d+)\.txt/)?.[1] || '0');
+      return numB - numA; // Ordem decrescente
+    });
+  
+  if (arquivos.length === 0) return null;
+  return path.join(DIRETORIO_DADOS, arquivos[0]);
+}
+
+// Função para salvar dados em um novo arquivo
+function salvarDados(hoteis: Hotel[], reservas: Reserva[], pessoas: Pessoa[]): void {
+  inicializarDiretorio();
+  
+  const numeroArquivo = obterProximoNumeroArquivo();
+  const nomeArquivo = path.join(DIRETORIO_DADOS, `dados_${numeroArquivo}.txt`);
+  
+  const linhas: string[] = [];
+  
+  // Adicionar cabeçalho com data e hora
+  linhas.push(`# SISTEMA DE HOTEL - DADOS SALVOS EM ${new Date().toLocaleString()}`);
+  linhas.push('');
+  
+  // Adicionar hotéis
+  linhas.push('## HOTÉIS');
+  hoteis.forEach(hotel => linhas.push(hotel.toString()));
+  linhas.push('');
+  
+  // Adicionar reservas
+  linhas.push('## RESERVAS');
+  reservas.forEach(reserva => linhas.push(reserva.toString()));
+  linhas.push('');
+  
+  // Adicionar pessoas
+  linhas.push('## PESSOAS');
+  pessoas.forEach(pessoa => linhas.push(pessoa.toString()));
+  
+  try {
+    fs.writeFileSync(nomeArquivo, linhas.join('\n'));
+    console.log(`Dados salvos no arquivo: ${nomeArquivo}`);
+  } catch (erro) {
+    console.error('Erro ao salvar dados:', erro);
+  }
+}
+
+// Função para carregar dados do último arquivo
+function carregarDados(hoteis: Hotel[], reservas: Reserva[], pessoas: Pessoa[]): void {
+  const ultimoArquivo = obterUltimoArquivo();
+  if (!ultimoArquivo) {
+    console.log('Nenhum arquivo de dados encontrado. Iniciando com dados vazios.');
+    return;
+  }
+  
+  try {
+    const conteudo = fs.readFileSync(ultimoArquivo, 'utf8');
+    const linhas = conteudo.split('\n').filter(linha => linha.trim() !== '' && !linha.startsWith('#'));
+    
+    let secaoAtual = '';
+    
+    linhas.forEach(linha => {
+      if (linha.startsWith('## ')) {
+        secaoAtual = linha.substring(3);
+        return;
+      }
+      
+      switch (secaoAtual) {
+        case 'HOTÉIS':
+          const hotel = Hotel.fromString(linha);
+          if (hotel) hoteis.push(hotel);
+          break;
+        case 'RESERVAS':
+          const reserva = Reserva.fromString(linha);
+          if (reserva) {
+            reservas.push(reserva);
+            const hotel = hoteis.find(h => h.getId() === reserva.getIdHotel());
+            if (hotel) hotel.adicionarReserva(reserva);
+          }
+          break;
+        case 'PESSOAS':
+          const pessoa = Pessoa.fromString(linha);
+          if (pessoa) pessoas.push(pessoa);
+          break;
+      }
+    });
+    
+    // Associar reservas às pessoas
+    reservas.forEach(reserva => {
+      const pessoa = pessoas.find(p => p.getNome() === reserva.getNomeResponsavel());
+      if (pessoa) pessoa.adicionarReserva(reserva);
+    });
+    
+    console.log(`Dados carregados do arquivo: ${ultimoArquivo}`);
+    console.log(`${hoteis.length} hotéis, ${reservas.length} reservas, ${pessoas.length} pessoas`);
+  } catch (erro) {
+    console.error('Erro ao carregar dados:', erro);
+  }
 }
 
 // Dados armazenados em memória
@@ -185,6 +415,11 @@ const pessoas: Pessoa[] = [];
 
 // Execução principal
 async function main() {
+  console.log("=== SISTEMA DE GERENCIAMENTO DE HOTEL ===");
+  
+  // Carregar dados do último arquivo
+  carregarDados(hoteis, reservas, pessoas);
+  
   let continuar = true;
   while (continuar) {
     const opcao = await perguntar('\nEscolha uma opção: h (hotel), r (reserva), i (info hotel), ir (info reserva), ip (info pessoa), s (sair): ');
@@ -218,6 +453,11 @@ async function main() {
       default: console.log('Opção inválida.');
     }
   }
+  
+  // Salvar dados em um novo arquivo antes de sair
+  salvarDados(hoteis, reservas, pessoas);
+  console.log("Dados salvos. Encerrando programa...");
+  
   fecharEntrada();
 }
 
