@@ -428,7 +428,7 @@ async function main() {
   
   let continuar = true;
   while (continuar) {
-    const opcao = await perguntar('\nEscolha uma opção: h (hotel), r (reserva), i (info hotel), ir (info reserva), ip (info pessoa), s (sair): ');
+    const opcao = await perguntar('\nEscolha uma opção: \nh (hotel), \nr (reserva), \ni (info hotel), \nir (info reserva), \nip (info pessoa), \ns (sair): ');
     switch (opcao) {
       case 'h': await Hotel.cadastrar(hoteis); break;
       case 'r': await Reserva.cadastrar(hoteis, reservas, pessoas); break;
